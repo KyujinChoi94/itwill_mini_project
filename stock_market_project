@@ -1,0 +1,929 @@
+# -*- coding: utf-8 -*-
+"""
+Kyujin Choi Project
+"""
+
+
+# 주가의 Change(변화량) 기준으로 최댓값, 최솟값 날짜 선정
+
+
+import FinanceDataReader as fdr
+import pandas as pd
+
+def get_max_date(code, name):
+    # Get data
+    data = fdr.DataReader(code, start='2020-01-01', end='2022-12-31')
+
+    # Drop missing values
+    data.dropna(inplace=True)
+
+    # Save data to CSV
+    path = r'C:\ITWILL\3_TextMining'
+    data.to_csv(f'{path}/df_{name}_change_data.csv')
+
+    # Find max and min change
+    max_change_row = data.loc[data['Change'].idxmax()]
+    max_date = max_change_row.name
+    return max_date
+
+# Call the function max and store the results in a list
+max_date_list = []
+max_date_list.append(get_max_date('259960', 'Krafton'))
+max_date_list.append(get_max_date('251270', 'Netmarble'))
+max_date_list.append(get_max_date('225570', 'Nexongames'))
+max_date_list.append(get_max_date('194480', 'Devsisters'))
+max_date_list.append(get_max_date('293490', 'Kakaogames'))
+max_date_list_formatted = [d.strftime('%Y-%m-%d') for d in max_date_list]
+
+
+# max_date_list_formatted = ['2022-11-11', '2022-12-29', '2021-01-05', '2021-02-01', '2020-09-11']
+
+
+def get_min_date(code, name):
+    # Get data
+    data = fdr.DataReader(code, start='2020-01-01', end='2022-12-31')
+
+    # Drop missing values
+    data.dropna(inplace=True)
+
+    # Save data to CSV
+    path = r'C:\ITWILL\3_TextMining'
+    data.to_csv(f'{path}/df_{name}_change_data.csv')
+
+    # Find min change
+    min_change_row = data.loc[data['Change'].idxmin()]
+    min_date =min_change_row.name
+    return min_date
+
+min_date_list = []
+min_date_list.append(get_min_date('259960', 'Krafton'))
+min_date_list.append(get_min_date('251270', 'Netmarble'))
+min_date_list.append(get_min_date('225570', 'Nexongames'))
+min_date_list.append(get_min_date('194480', 'Devsisters'))
+min_date_list.append(get_min_date('293490', 'Kakaogames'))
+min_date_list_formatted = [d.strftime('%Y-%m-%d') for d in min_date_list]
+
+
+# min_date_list_formatted =['2022-02-11', '2022-05-13', '2022-06-13', '2021-03-30', '2022-01-06']
+
+
+
+
+max_date_list_formatted = ['2022-11-11', '2022-12-29', '2021-01-05', '2021-02-01', '2020-09-11']
+min_date_list_formatted = ['2022-02-11', '2022-05-13', '2022-06-13', '2021-03-30', '2022-01-06']
+
+# date 생성기
+from datetime import datetime, timedelta
+
+def date_maker(date_list):
+    # Create an empty list to store the start and end dates
+    dates = []
+    
+    # Loop through the input date list and create a tuple of start and end dates for each date
+    for date_str in date_list:
+        # Convert the input date string to a datetime object
+        d = datetime.strptime(date_str, '%Y-%m-%d')
+    
+        # Calculate the start date (14 days before the input date)
+        d_before = d - timedelta(days=14)
+    
+        # Add the start and end dates to the list of dates
+        dates.append((d_before.strftime('%Y-%m-%d'), date_str))
+    
+    return dates
+
+
+max_dates = date_maker(max_date_list_formatted)
+min_dates = date_maker(min_date_list_formatted)
+
+
+print('max_dates = ', max_dates)
+print('min_dates = ', min_dates)
+
+###############################################################################################################################################################################
+
+
+max_dates =  [('2022-10-28', '2022-11-11'), ('2022-12-15', '2022-12-29'), ('2020-12-22', '2021-01-05'), ('2021-01-18', '2021-02-01'), ('2020-08-28', '2020-09-11')]
+min_dates =  [('2022-01-28', '2022-02-11'), ('2022-04-29', '2022-05-13'), ('2022-05-30', '2022-06-13'), ('2021-03-16', '2021-03-30'), ('2021-12-23', '2022-01-06')]
+
+
+# url 생성기
+import urllib.parse
+text_inputs = ["크래프톤", "넷마블", "넥슨", "데브시스터즈", "카카오게임즈"]
+
+results = []
+for text in text_inputs:
+    encoded_string = text.encode('euc-kr')
+    encoded_result = encoded_string.hex().upper()
+    encoded_bytes = bytes.fromhex(encoded_result)
+    encoded_string = encoded_bytes.decode('euc-kr')
+    encoded_string = urllib.parse.quote(encoded_string, encoding='euc-kr')
+    results.append(encoded_string)
+
+
+max_urls = []
+def url_maker_max(results, max_dates):
+    for result, max_date in zip(results, max_dates):
+        max_url = f"https://finance.naver.com/news/news_search.naver?rcdate=&q={result}&x=0&y=0&sm=all.basic&pd=4&stDateStart={max_date[0]}&stDateEnd={max_date[1]}"
+        max_urls.append(max_url)
+
+min_urls = []
+def url_maker_min(results, min_dates):
+    for result, min_date in zip(results, min_dates):
+        min_url = f"https://finance.naver.com/news/news_search.naver?rcdate=&q={result}&x=0&y=0&sm=all.basic&pd=4&stDateStart={min_date[0]}&stDateEnd={min_date[1]}"
+        min_urls.append(min_url)
+
+
+
+
+url_maker_max(results, max_dates)
+print(max_urls)
+'''
+['https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-10-28&stDateEnd=2022-11-11', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-12-15&stDateEnd=2022-12-29', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-12-22&stDateEnd=2021-01-05', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2021-01-18&stDateEnd=2021-02-01', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-08-28&stDateEnd=2020-09-11']
+'''
+
+url_maker_min(results, min_dates)
+print(min_urls)
+'''
+['https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-01-28&stDateEnd=2022-02-11', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-04-29&stDateEnd=2022-05-13', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-05-30&stDateEnd=2022-06-13', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2021-03-16&stDateEnd=2021-03-30', 
+ 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2021-12-23&stDateEnd=2022-01-06']
+'''
+
+###############################################################################################################################################################################
+
+#생성된 URL을 딕셔너리 형태로 만들기
+
+max_name_list = ['Krafton_max_change', 'Netmarble_max_change', 'Nexongames_max_change', 'Devsisters_max_change', 'Kakaogames_max_change']
+change_max_url = dict(zip(max_name_list, max_urls))
+print(change_max_url)
+
+
+min_name_list = ['Krafton_min_change', 'Netmarble_min_change', 'Nexongames_min_change', 'Devsisters_min_change', 'Kakaogames_min_change']
+change_min_url = dict(zip(min_name_list, min_urls))
+print(change_min_url)
+
+
+
+'''
+ # 종가(close) 기준 max 
+close_max_url = {
+    'Krafton_max_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2021-11-11&stDateEnd=2021-11-17'
+    ,'Netmarble_max_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-08-28&stDateEnd=2020-09-04'
+    ,'Nexongames_max_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-03-19&stDateEnd=2022-03-25'
+    ,'Devsisters_max_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2021-10-01&stDateEnd=2021-10-07'
+    ,'Kakaogames_max_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2021-11-10&stDateEnd=2021-11-16'
+    }   
+    
+# 종가(close) 기준 min
+close_min_url = {
+    'Krafton_min_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-12-23&stDateEnd=2022-12-29'
+    ,'Netmarble_min_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-10-20&stDateEnd=2022-10-26'
+    ,'Nexongames_min_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-03-17&stDateEnd=2020-03-23'
+    ,'Devsisters_min_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-03-17&stDateEnd=2020-03-23'
+    ,'Kakaogames_min_close' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-10-06&stDateEnd=2022-10-13'
+    }
+'''
+###############################################################################################################################################################################
+
+# 웹 크롤러 (뉴스 기사의 제목, 요약, 날짜를 저장)
+
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+
+def scrape_news(name, url):
+    subjects = []
+    summaries = []
+
+    for page in range(1, 30):
+        response = requests.get(f"{url}&page={page}")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        for subject, summary in zip(
+            soup.find_all("dd", class_="articleSubject"),
+            soup.find_all("dd", class_="articleSummary")
+        ):
+            # Remove special characters from subjects and summaries
+            subject_str = subject.text.replace('\n', '').replace('\t', '').replace('\r', '').strip()
+            subject_str = ''.join(c for c in subject_str if c.isalnum() or c.isspace())
+            subjects.append(subject_str)
+
+            summary_str = summary.text.replace('\n', '').replace('\t', '').replace('\r', '').strip()
+            summary_str = ''.join(c for c in summary_str if c.isalnum() or c.isspace())
+            summaries.append(summary_str)
+
+    if len(subjects) == len(summaries):
+        data = {"subjects": subjects, "summaries": summaries}
+        df = pd.DataFrame(data, index=None)
+        path = r"C:\ITWILL\3_TextMining"
+        df.to_csv(path + f'\{name}_dataframe.csv', index=False)
+
+
+for name, url in change_max_url.items():
+    scrape_news(name, url)
+    
+for name, url in change_min_url.items():
+    scrape_news(name, url)
+    
+'''
+for name, url in close_max_url.items():
+    scrape_news(name, url)
+
+for name, url in close_min_url.items():
+    scrape_news(name, url)
+ '''   
+##################################################################################################################################################################
+
+
+#탑 100 words
+
+import pandas as pd
+from konlpy.tag import Okt
+from wordcloud import WordCloud
+from collections import Counter
+import matplotlib.pyplot as plt
+
+def generate_topN(file_path):
+    # Read CSV file
+    df = pd.read_csv(file_path)
+
+    # Select the summaries column
+    summaries = df['summaries']
+    subjects = df['subjects']
+    total = summaries + subjects
+    
+    # Extract nouns
+    okt = Okt()
+    nouns = []
+    for sent in total:
+        for noun in okt.nouns(sent):
+            if len(noun) > 1 and len(noun) <= 10: # Only select nouns with length between 2 and 10
+                nouns.append(noun)
+
+    # Count top 50 words
+    word_count = Counter(nouns)
+    top100_word = word_count.most_common(100)
+    print(top100_word)
+
+
+name_save = ['Krafton_max_change', 'Krafton_min_change', 'Netmarble_max_change', 'Netmarble_min_change', 'Nexongames_max_change', 'Nexongames_min_change', 'Devsisters_max_change', 'Devsisters_min_change', 'Kakaogames_max_change', 'Kakaogames_min_change',
+             'Krafton_max_close', 'Krafton_min_close', 'Netmarble_max_close', 'Netmarble_min_close', 'Nexongames_max_close', 'Nexongames_min_close', 'Devsisters_max_close', 'Devsisters_min_close', 'Kakaogames_max_close', 'Kakaogames_min_close']
+path = r"C:\ITWILL\3_TextMining"
+for name in name_save:
+      generate_topN(path + f'\{name}_dataframe.csv')
+
+
+###############################################################################################################################################################################
+
+
+#워드 클라우드 생성
+
+import pandas as pd
+from konlpy.tag import Okt
+from wordcloud import WordCloud
+from collections import Counter
+import matplotlib.pyplot as plt
+
+def generate_wordcloud(file_path):
+    # Read CSV file
+    df = pd.read_csv(file_path)
+
+    # Select the summaries column
+    summaries = df['summaries']
+    subjects = df['subjects']
+    total = summaries + subjects
+    
+    # Extract nouns
+    okt = Okt()
+    nouns = []
+    for sent in total:
+        for noun in okt.nouns(sent):
+            if len(noun) > 1 and len(noun) <= 10: # Only select nouns with length between 2 and 10
+                nouns.append(noun)
+
+    # Count top 50 words
+    word_count = Counter(nouns)
+    top100_word = word_count.most_common(100)
+
+    # Generate WordCloud
+    wc = WordCloud(font_path='C:/Windows/Fonts/malgun.ttf',
+                   width=500, height=400,
+                   max_words=100, max_font_size=150,
+                   background_color='white')
+    wc_result = wc.generate_from_frequencies(dict(top100_word))
+
+    # Show WordCloud
+    plt.imshow(wc_result)
+    plt.axis('off')
+    plt.show()
+
+name_save = ['Krafton_max_change', 'Krafton_min_change', 'Netmarble_max_change', 'Netmarble_min_change', 'Nexongames_max_change', 'Nexongames_min_change', 'Devsisters_max_change', 'Devsisters_min_change', 'Kakaogames_max_change', 'Kakaogames_min_change',
+             'Krafton_max_close', 'Krafton_min_close', 'Netmarble_max_close', 'Netmarble_min_close', 'Nexongames_max_close', 'Nexongames_min_close', 'Devsisters_max_close', 'Devsisters_min_close', 'Kakaogames_max_close', 'Kakaogames_min_close']
+path = r"C:\ITWILL\3_TextMining"
+for name in name_save:
+      generate_wordcloud(path + f'\{name}_dataframe.csv')
+
+###################################################################################################################################################################
+
+#pip install googletrans
+
+import pandas as pd
+from konlpy.tag import Okt
+from wordcloud import WordCloud
+from collections import Counter
+from googletrans import Translator
+
+
+def translate_topN(file_path, output_dir):
+    # Read CSV file
+    df = pd.read_csv(file_path)
+
+    # Select the summaries column
+    summaries = df['summaries']
+    subjects = df['subjects']
+    total = summaries + subjects
+    # Extract nouns
+    okt = Okt()
+    nouns = []
+    for sent in total:
+        for noun in okt.nouns(sent):
+            if len(noun) > 1 and len(noun) <= 10: # Only select nouns with length between 2 and 10
+                nouns.append(noun)
+
+    # Count top 50 words
+    word_count = Counter(nouns)
+    top100_word = word_count.most_common(100)
+
+    # Translate words to English
+    translator = Translator()
+    translated_words = [(translator.translate(word[0], dest='en').text, word[1]) for word in top100_word]
+
+    # Save translated words as a CSV file
+    output_file = f"{output_dir}/{file_path.split('/')[-1].split('.')[0]}_top100_word_translated.csv"
+    df_translated = pd.DataFrame(translated_words, columns=['word', 'count'])
+    df_translated.to_csv(output_file, index=False)
+
+
+# List of input file names
+name_save = ['Krafton_max_change', 'Krafton_min_change', 'Netmarble_max_change', 'Netmarble_min_change', 'Nexongames_max_change', 'Nexongames_min_change', 'Devsisters_max_change', 'Devsisters_min_change', 'Kakaogames_max_change', 'Kakaogames_min_change',
+             'Krafton_max_close', 'Krafton_min_close', 'Netmarble_max_close', 'Netmarble_min_close', 'Nexongames_max_close', 'Nexongames_min_close', 'Devsisters_max_close', 'Devsisters_min_close', 'Kakaogames_max_close', 'Kakaogames_min_close']
+
+# Path to input and output directories
+input_path = r"C:\ITWILL\3_TextMining"
+output_path = r"C:\ITWILL\3_TextMining\results"
+
+# Translate top 100 words for each input file and save results as separate CSV files in the output directory
+for name in name_save:
+    file_path = f"{input_path}/{name}_dataframe.csv"
+    translate_topN(file_path, output_path)
+
+########################################################################################################################################################################################################
+'''
+#탑 100 하기전에 번역을 먼저 하고 돌려야함.
+
+import pandas as pd
+from googletrans import Translator
+
+
+def Google_trans(file_path, output_dir):
+    # Read CSV file
+    df = pd.read_csv(file_path)
+
+    # Select the summaries column
+    summaries = df['summaries']
+    subjects = df['subjects']
+    total = summaries + subjects
+    
+    # Translate words to English
+    
+    sents = []
+   
+    for sent in total: 
+        translator = Translator()
+        translator.raise_Exception = True
+        translated_words = translator.translate(sent).text
+        sents.append(translated_words)
+        
+    
+    # Save translated words as a CSV file
+    output_file = f"{output_dir}/{file_path.split('/')[-1].split('.')[0]}_translated.csv"
+    df_translated = pd.DataFrame(sents)
+    df_translated.to_csv(output_file, index=False)
+
+
+# List of input file names
+name_save = ['Krafton_max_change', 'Krafton_min_change', 'Netmarble_max_change', 'Netmarble_min_change', 'Nexongames_max_change', 'Nexongames_min_change', 'Devsisters_max_change', 'Devsisters_min_change', 'Kakaogames_max_change', 'Kakaogames_min_change',
+             'Krafton_max_close', 'Krafton_min_close', 'Netmarble_max_close', 'Netmarble_min_close', 'Nexongames_max_close', 'Nexongames_min_close', 'Devsisters_max_close', 'Devsisters_min_close', 'Kakaogames_max_close', 'Kakaogames_min_close']
+
+# Path to input and output directories
+input_path = r"C:\ITWILL\3_TextMining"
+output_path = r"C:\ITWILL\3_TextMining\results2"
+
+# Translate top 100 words for each input file and save results as separate CSV files in the output directory
+for name in name_save:
+    file_path = f"{input_path}/{name}_dataframe.csv"
+    Google_trans(file_path, output_path)
+'''
+########################################################################################################################################################################################################
+
+#단어 감정 분석
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from afinn import Afinn
+
+def Affin_Function(file_path):
+    afinn = Afinn()
+    df = pd.read_csv(file_path)
+    
+    df['score'] = df['word'].apply(lambda x: afinn.score(x))
+    df['weighted_score'] = df['score'] * df['count']
+    
+    positive = (df['weighted_score'] > 0).sum()
+    #neutral = (df['weighted_score'] == 0).sum()
+    negative = (df['weighted_score'] < 0).sum()
+    
+    v = (positive - negative)/(positive + negative)
+    
+    plt.style.use('seaborn-white')        
+    plt.bar([0,1], [positive, negative], color=['green', 'red'])
+    plt.xticks([0,1], ['positive', 'negative'])   
+    plt.legend(['Positive', 'Negative'])
+    plt.text(0.5, max(positive, negative), f"v={v:.2f}", ha='right', va='bottom', fontsize=12)
+    plt.show()
+
+
+
+name_save = ['Krafton_max_change', 'Krafton_min_change', 'Netmarble_max_change', 'Netmarble_min_change', 'Nexongames_max_change', 'Nexongames_min_change', 'Devsisters_max_change', 'Devsisters_min_change', 'Kakaogames_max_change', 'Kakaogames_min_change',
+             'Krafton_max_close', 'Krafton_min_close', 'Netmarble_max_close', 'Netmarble_min_close', 'Nexongames_max_close', 'Nexongames_min_close', 'Devsisters_max_close', 'Devsisters_min_close', 'Kakaogames_max_close', 'Kakaogames_min_close']
+path = r"C:\ITWILL\3_TextMining\results"
+
+for name in name_save:
+      df_path = path + f'\{name}_dataframe_top100_word_translated.csv'
+      Affin_Function(df_path)
+      plt.title(name)
+
+
+
+
+
+
+for name in name_save:
+      Affin_Function(path + f'\{name}_dataframe_top100_word_translated.csv')
+
+
+
+
+
+########################################################################################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+###########################     FUNCTIONS     ###########################
+
+#변동 사항제일큰 데이터 N개 뽑아주는 함수
+def top_N_changes(finance_data, N):
+    finance_data['Abs_Change'] = finance_data['Change'].abs()
+    top_N = finance_data.sort_values(by='Abs_Change', ascending=False).head(N)
+    # Drop the 'Abs_Change' column
+    top_N = top_N.drop('Abs_Change', axis=1)
+    return top_N
+
+print(top_N_changes(samsung, 11))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from sklearn.datasets import fetch_20newsgroups
+newsdata = fetch_20newsgroups(subset = 'train')
+newsdata.data[0]
+
+
+from afinn import Afinn
+
+afinn = Afinn()
+for i in range(10):
+  print(afinn.score(newsdata.data[i]))
+
+import numpy as np
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-white')
+
+positive = 0
+neutral = 0
+negative = 0
+
+for i in newsdata.data:
+  score = afinn.score(i)
+  if score > 0:
+    positive +=1
+  elif score == 0 :
+    neutral +=1
+  else :
+    negative +=1
+
+plt.bar(np.arange(3), [positive,neutral,negative])
+plt.xticks(np.arange(3), ['positive','neutral','negative'])    
+plt.show()
+
+
+url_dict = {
+'Krafton_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=22&y=12&sm=all.basic&pd=4&stDateStart=2022-11-11&stDateEnd=2022-11-11'
+,'Krafton_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-02-11&stDateEnd=2022-02-11'
+,'Netmarble_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=30&y=13&sm=all.basic&pd=4&stDateStart=2022-12-29&stDateEnd=2022-12-29'
+,'Netmarble_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=17&y=14&sm=all.basic&pd=4&stDateStart=2022-05-13&stDateEnd=2022-05-13'
+,'Nexongames_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=31&y=9&sm=all.basic&pd=4&stDateStart=2021-01-05&stDateEnd=2021-01-05'
+,'Nexongames_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-06-13&stDateEnd=2022-06-13'
+,'Devsisters_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=13&y=16&sm=all.basic&pd=4&stDateStart=2021-02-01&stDateEnd=2021-02-01'
+,'Devsisters_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=23&y=12&sm=all.basic&pd=4&stDateStart=2021-03-30&stDateEnd=2021-03-30'
+,'Kakaogames_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0+%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-09-11&stDateEnd=2020-09-11'
+,'Kakaogames_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0+%B0%D4%C0%D3%C1%EE&x=6&y=14&sm=all.basic&pd=4&stDateStart=2022-01-06&stDateEnd=2022-01-06'
+
+}
+
+print(type(url_dict.keys()))
+
+
+
+# 웹 크롤러 (뉴스 기사의 제목, 요약, 날짜를 저장)
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+
+def scrape_news(name, url):
+    dates = []
+    subjects = []
+    summaries = []
+
+    for page in range(1, 20):
+        response = requests.get(f"{url}&page={page}")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        for date, subject, summary in zip(
+            soup.find_all("span", class_="wdate"),
+            soup.find_all("dd", class_="articleSubject"),
+            soup.find_all("dd", class_="articleSummary")
+        ):
+            dates.append(date.text.replace('\n', '').replace('\t', '').replace('\r', '').strip())
+            subjects.append(subject.text.replace('\n', '').replace('\t', '').replace('\r', '').strip())
+            summaries.append(summary.text.replace('\n', '').replace('\t', '').replace('\r', '').strip())
+
+    if len(dates) == len(subjects) == len(summaries):
+        data = {"dates": dates, "subjects": subjects, "summaries": summaries}
+        df = pd.DataFrame(data, index=None)
+        path = r"C:\ITWILL\3_TextMining"
+        df.to_csv(path + f'\{name}_dataframe.csv', index=None)
+
+for name, url in url_dict.items():
+    scrape_news(name, url)
+
+
+###############################################################################################################################################################################
+
+
+
+
+
+
+Krafton_url_max = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=22&y=12&sm=all.basic&pd=4&stDateStart=2022-11-11&stDateEnd=2022-11-11'
+Krafton_url_min = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-02-11&stDateEnd=2022-02-11'
+Netmarble_url_max = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=30&y=13&sm=all.basic&pd=4&stDateStart=2022-12-29&stDateEnd=2022-12-29'
+Netmarble_url_min = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=17&y=14&sm=all.basic&pd=4&stDateStart=2022-05-13&stDateEnd=2022-05-13'
+Nexongames_url_max = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=31&y=9&sm=all.basic&pd=4&stDateStart=2021-01-05&stDateEnd=2021-01-05'
+Nexongames_url_min = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-06-13&stDateEnd=2022-06-13'
+Devsisters_url_max = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=13&y=16&sm=all.basic&pd=4&stDateStart=2021-02-01&stDateEnd=2021-02-01'
+Devsisters_url_min = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=23&y=12&sm=all.basic&pd=4&stDateStart=2021-03-30&stDateEnd=2021-03-30'
+Kakaogames_url_max = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0+%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-09-11&stDateEnd=2020-09-11'
+Kakaogames_url_min = 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0+%B0%D4%C0%D3%C1%EE&x=6&y=14&sm=all.basic&pd=4&stDateStart=2022-01-06&stDateEnd=2022-01-06'
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+#딕셔너리 결과로 생성 실험작
+
+import FinanceDataReader as fdr
+import pandas as pd
+
+def get_stock_data(code, name):
+    # Get data
+    data = fdr.DataReader(code, start='2020-01-01', end='2022-12-31')
+
+    # Drop missing values
+    data.dropna(inplace=True)
+
+    # Save data to CSV
+    path = r'C:\ITWILL\3_TextMining'
+    data.to_csv(f'{path}/df_{name}_data.csv')
+
+    # Find max and min change
+    max_change_row = data.loc[data['Change'].idxmax()]
+    max_change_date = max_change_row.name.strftime('%Y-%m-%d')
+    max_change = max_change_row['Change']
+    min_change_row = data.loc[data['Change'].idxmin()]
+    min_change_date = min_change_row.name.strftime('%Y-%m-%d')
+    min_change = min_change_row['Change']
+
+    # Return dictionary
+    return {f'{name} max change': f'{max_change_date}, {max_change}', f'{name} min change': f'{min_change_date}, {min_change}'}
+
+# Call the function for each company and save the results in a dictionary
+results = {}
+results.update(get_stock_data('259960', 'Krafton'))
+results.update(get_stock_data('251270', 'Netmarble'))
+results.update(get_stock_data('225570', 'Nexongames'))
+results.update(get_stock_data('194480', 'Devsisters'))
+results.update(get_stock_data('293490', 'Kakaogames'))
+
+'''
+# Print the results
+#print(results)
+'''
+{'Krafton max change': '2022-11-11, 0.18229166666666674', 'Krafton min change': '2022-02-11, -0.12794612794612792', 'Netmarble max change': '2022-12-29, 0.17738791423001943', 'Netmarble min change': '2022-05-13, -0.13825983313468415', 'Nexongames max change': '2021-01-05, 0.30000000000000004', 'Nexongames min change': '2022-06-13, -0.20588235294117652', 'Devsisters max change': '2021-02-01, 0.2996894409937889', 'Devsisters min change': '2021-03-30, -0.17537313432835822', 'Kakaogames max change': '2020-09-11, 0.2996794871794872', 'Kakaogames min change': '2022-01-06, -0.14236111111111116'}
+'''
+
+
+'''
+import FinanceDataReader as fdr
+import pandas as pd
+
+#Krafton(259960), Netmarble(251270), Nexongames(225570), Devsisters(194480), Kakaogames(293490)
+#종목별 단위기간 3년(2020 ~ 2022)동안의 데이터를 결측지 제거 처리후 변화값이 최대인 날짜를 뽑음
+# Krafton
+Krafton = fdr.DataReader('259960', start = '2020-01-01', end = '2022-12-31')
+Krafton     #[343 rows x 6 columns]
+Krafton.isnull() # 결측치 처리 
+Krafton.isnull().value_counts()
+Krafton = Krafton.dropna()   # 결측치 있는 행 삭제
+Krafton = Krafton.dropna(axis = 1) # 결측치 있는 열 삭제 
+Krafton.dropna(inplace = True)
+df_Krafton = pd.DataFrame(Krafton)
+# csv file 저장 
+path = r"C:\ITWILL\3_TextMining"
+df_Krafton.to_csv(path + '/df_Krafton_data.csv')  
+
+
+# Netmarble
+Netmarble = fdr.DataReader('251270', start = '2020-01-01', end = '2022-12-31')
+Netmarble   #[742 rows x 6 columns]
+Netmarble.isnull() # 결측치 처리 
+Netmarble.isnull().value_counts()
+Netmarble = Netmarble.dropna()   # 결측치 있는 행 삭제
+Netmarble = Netmarble.dropna(axis = 1) # 결측치 있는 열 삭제 
+Netmarble.dropna(inplace = True)
+df_Netmarble = pd.DataFrame(Netmarble)
+# csv file 저장 
+path = r"C:\ITWILL\3_TextMining"
+df_Netmarble.to_csv(path + '/df_Netmarble_data.csv')
+
+
+
+
+# Nexongames
+Nexongames = fdr.DataReader('225570', start = '2020-01-01', end = '2022-12-31')
+Nexongames  #[742 rows x 6 columns]
+Nexongames.isnull() # 결측치 처리 
+Nexongames.isnull().value_counts()
+Nexongames = Nexongames.dropna()   # 결측치 있는 행 삭제
+Nexongames = Nexongames.dropna(axis = 1) # 결측치 있는 열 삭제 
+Nexongames.dropna(inplace = True)
+df_Nexongames = pd.DataFrame(Nexongames)
+# csv file 저장 
+path = r"C:\ITWILL\3_TextMining"
+df_Nexongames.to_csv(path + '/df_Nexongames_data.csv')
+
+
+
+# Devsisters
+Devsisters = fdr.DataReader('194480', start = '2020-01-01', end = '2022-12-31')
+Devsisters  #[742 rows x 6 columns]
+Devsisters.isnull() # 결측치 처리 
+Devsisters.isnull().value_counts()
+Devsisters = Devsisters.dropna()   # 결측치 있는 행 삭제
+Devsisters = Devsisters.dropna(axis = 1) # 결측치 있는 열 삭제 
+Devsisters.dropna(inplace = True)
+df_Devsisters = pd.DataFrame(Devsisters)
+# csv file 저장 
+path = r"C:\ITWILL\3_TextMining"
+df_Devsisters.to_csv(path + '/df_Devsisters_data.csv')
+
+
+
+# Kakaogames
+Kakaogames = fdr.DataReader('293490', start = '2020-01-01', end = '2022-12-31')
+Kakaogames  #[569 rows x 6 columns]
+Kakaogames.isnull() # 결측치 처리 
+Kakaogames.isnull().value_counts()
+Kakaogames = Kakaogames.dropna()   # 결측치 있는 행 삭제
+Kakaogames = Kakaogames.dropna(axis = 1) # 결측치 있는 열 삭제 
+Kakaogames.dropna(inplace = True)
+df_Kakaogames = pd.DataFrame(Kakaogames)
+# csv file 저장 
+path = r"C:\ITWILL\3_TextMining"
+df_Kakaogames.to_csv(path + '/df_Kakaogames_data.csv')
+
+
+
+#필요한 컬럼: Change
+max_change_row = df_Krafton.loc[df_Krafton['Change'].idxmax()]
+print(max_change_row) #2022-11-11, 0.182292
+min_change_row = df_Krafton.loc[df_Krafton['Change'].idxmin()]
+print(min_change_row) #2022-02-11 00:00:00, -1.279461e-01
+
+max_change_row = df_Netmarble.loc[df_Netmarble['Change'].idxmax()]
+print(max_change_row) #2022-12-29, 1.773879e-01
+min_change_row = df_Netmarble.loc[df_Netmarble['Change'].idxmin()]
+print(min_change_row) #2022-05-13, -1.382598e-01
+
+max_change_row = df_Nexongames.loc[df_Nexongames['Change'].idxmax()]
+print(max_change_row) #2021-01-05, 0.3
+min_change_row = df_Nexongames.loc[df_Nexongames['Change'].idxmin()]
+print(min_change_row) #2022-06-13,  -2.058824e-01
+
+max_change_row = df_Devsisters.loc[df_Devsisters['Change'].idxmax()]
+print(max_change_row) #2021-02-01, 2.996894e-01
+min_change_row = df_Devsisters.loc[df_Devsisters['Change'].idxmin()]
+print(min_change_row) #2021-03-30, -0.175373
+
+max_change_row = df_Kakaogames.loc[df_Kakaogames['Change'].idxmax()]
+print(max_change_row) #2020-09-11, 2.996795e-01
+min_change_row = df_Kakaogames.loc[df_Kakaogames['Change'].idxmin()]
+print(min_change_row) #Name: 2022-01-06, -1.423611e-01
+'''
+#####################################################################
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+url_dict = {
+'Krafton_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=22&y=12&sm=all.basic&pd=4&stDateStart=2022-11-11&stDateEnd=2022-11-11'
+,'Krafton_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C5%A9%B7%A1%C7%C1%C5%E6&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-02-11&stDateEnd=2022-02-11'
+,'Netmarble_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=30&y=13&sm=all.basic&pd=4&stDateStart=2022-12-29&stDateEnd=2022-12-29'
+,'Netmarble_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%DD%B8%B6%BA%ED&x=17&y=14&sm=all.basic&pd=4&stDateStart=2022-05-13&stDateEnd=2022-05-13'
+,'Nexongames_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=31&y=9&sm=all.basic&pd=4&stDateStart=2021-01-05&stDateEnd=2021-01-05'
+,'Nexongames_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B3%D8%BD%BC&x=0&y=0&sm=all.basic&pd=4&stDateStart=2022-06-13&stDateEnd=2022-06-13'
+,'Devsisters_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=13&y=16&sm=all.basic&pd=4&stDateStart=2021-02-01&stDateEnd=2021-02-01'
+,'Devsisters_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%B5%A5%BA%EA%BD%C3%BD%BA%C5%CD%C1%EE&x=23&y=12&sm=all.basic&pd=4&stDateStart=2021-03-30&stDateEnd=2021-03-30'
+,'Kakaogames_url_max' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0+%B0%D4%C0%D3%C1%EE&x=0&y=0&sm=all.basic&pd=4&stDateStart=2020-09-11&stDateEnd=2020-09-11'
+,'Kakaogames_url_min' : 'https://finance.naver.com/news/news_search.naver?rcdate=&q=%C4%AB%C4%AB%BF%C0+%B0%D4%C0%D3%C1%EE&x=6&y=14&sm=all.basic&pd=4&stDateStart=2022-01-06&stDateEnd=2022-01-06'
+
+}
+
+print(type(url_dict.keys()))
+
+def scrape_news(url, name):
+    dates = []
+    subjects = []
+    summaries = []
+
+    for page in range(1, 20):
+        response = requests.get(f"{url}&page={page}")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        for date, subject, summary in zip(
+            soup.find_all("span", class_="wdate"),
+            soup.find_all("dd", class_="articleSubject"),
+            soup.find_all("dd", class_="articleSummary")
+        ):
+            dates.append(date.text.replace('\n', '').replace('\t', '').replace('\r', '').strip())
+            subjects.append(subject.text.replace('\n', '').replace('\t', '').replace('\r', '').strip())
+            summaries.append(summary.text.replace('\n', '').replace('\t', '').replace('\r', '').strip())
+
+    if len(dates) == len(subjects) == len(summaries):
+        data = {"dates": dates, "subjects": subjects, "summaries": summaries}
+        df = pd.DataFrame(data, index=None)
+        path = r"C:\ITWILL\3_TextMining"
+        df.to_csv(path + f'\{name}_dataframe.csv', index=None)
+
+for name, url in url_dict.items():
+    scrape_news(url, name)
+
+#################################################################################
+import pandas as pd
+from konlpy.tag import Okt
+from wordcloud import WordCloud
+from collections import Counter
+import matplotlib.pyplot as plt
+
+def generate_wordcloud(file_path):
+    # Read CSV file
+    df = pd.read_csv(file_path)
+
+    # Select the summaries column
+    summaries = df['summaries']
+
+    # Extract nouns
+    okt = Okt()
+    nouns = []
+    for sent in summaries:
+        for noun in okt.nouns(sent):
+            if len(noun) > 1 and len(noun) <= 5: # Only select nouns with length between 2 and 5
+                nouns.append(noun)
+
+    # Count top 50 words
+    word_count = Counter(nouns)
+    top50_word = word_count.most_common(50)
+
+    # Generate WordCloud
+    wc = WordCloud(font_path='C:/Windows/Fonts/malgun.ttf',
+                   width=500, height=400,
+                   max_words=100, max_font_size=150,
+                   background_color='white')
+    wc_result = wc.generate_from_frequencies(dict(top50_word))
+
+    # Show WordCloud
+    plt.imshow(wc_result)
+    plt.axis('off')
+    plt.show()
+
+name_save = ['Krafton_url_max', 'Krafton_url_min', 'Netmarble_url_max', 'Netmarble_url_min', 'Nexongames_url_max', 'Nexongames_url_min', 'Devsisters_url_max', 'Devsisters_url_min', 'Kakaogames_url_max', 'Kakaogames_url_min']
+path = r"C:\ITWILL\3_TextMining"
+for name in name_save:
+      generate_wordcloud(path + f'\{name}_dataframe.csv')
+
+##################################################################################
+
+#Nasdaq vs Blizzard graph
+
+import matplotlib.pyplot as plt
+# Create two separate plots
+fig, axs = plt.subplots(nrows=2, figsize=(10, 8))
+
+# Plot the first graph on the top row
+df_Nasdaq['Close'].plot(ax=axs[0], legend=False, color='red')
+axs[0].set_title('Nasdaq')
+
+# Plot the second graph on the bottom row
+df_Blizzard['Close'].plot(ax=axs[1], legend=False, color='blue')
+axs[1].set_title('Blizzard')
+
+# Set the common x-axis label
+plt.xlabel('Date')
+
+# Show the plot
+plt.show()
+
+##########################################################################
+
+#Kospi vs Krafton graph
+
+import matplotlib.pyplot as plt
+# Create two separate plots
+fig, axs = plt.subplots(nrows=2, figsize=(10, 8))
+
+# Plot the first graph on the top row
+df_Kospi['Close'].plot(ax=axs[0], legend=False, color='red' )
+axs[0].set_title('Kospi')
+
+# Plot the second graph on the bottom row
+df_Krafton['Close'].plot(ax=axs[1], legend=False, color='blue')
+axs[1].set_title('Krafton')
+
+# Set the common x-axis label
+plt.xlabel('Date')
+
+# Show the plot
+plt.show()
+
+##########################################################################
+
+
+
